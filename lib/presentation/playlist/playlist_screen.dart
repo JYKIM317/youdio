@@ -34,7 +34,6 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
           onTap: () {
             if (currentPlay != playlist[idx]) {
               ref.read(playlistProvider).grantMusic(playlist[idx]);
-              ref.read(playlistProvider).initController();
             }
           },
           onLongPress: () {

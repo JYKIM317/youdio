@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:youdio/provider/playlist_provider.dart';
 
 class MusicProgressBar extends ConsumerWidget {
-  const MusicProgressBar({super.key});
+  final Stream<Map<String, int>> stream;
+  const MusicProgressBar({super.key, required this.stream});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     return StreamBuilder(
-      stream: ref.watch(musicProvider).getCurrentDuration(),
+      stream: stream,
       builder: (BuildContext context, AsyncSnapshot snapshot) {
         Map<String, int>? time = snapshot.data;
         if (time == null || (time['position'] == 0 && time['duration'] == 0)) {

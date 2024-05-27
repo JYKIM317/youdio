@@ -5,9 +5,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:go_router/go_router.dart';
 import 'package:youdio/presentation/music/music_page_widget.dart';
 import 'package:youdio/presentation/snackbar.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 import 'package:youdio/data/model/youtube/youtube.dart';
 import 'package:youdio/provider/playlist_provider.dart';
+import 'package:youdio/provider/search_provider.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:just_audio/just_audio.dart';
 
 class MusicPage extends ConsumerStatefulWidget {
   const MusicPage({super.key});
@@ -17,10 +19,37 @@ class MusicPage extends ConsumerStatefulWidget {
 }
 
 class _MusicPageState extends ConsumerState<MusicPage> {
+  AudioPlayer player = AudioPlayer();
+  YoutubeExplode yt = YoutubeExplode();
+
+  Stream<Map<String, int>> getCurrentDuration() async* {
+    Map<String, int> currentDuration = {
+      'position': player.position.inSeconds,
+      'duration': player.duration?.inSeconds ?? 0,
+    };
+    yield currentDuration;
+  }
+
+  Future<void> initMusic() async {
+    StreamManifest manifest = await yt.videos.streamsClient
+        .getManifest(ref.read(musicProvider).currentMusic!.id);
+    StreamInfo info = manifest.audioOnly.withHighestBitrate();
+    String audioUri = info.url.toString();
+
+    await player.setUrl(audioUri);
+    player.play();
+  }
+
   @override
   void initState() {
-    ref.read(musicProvider).initController();
+    initMusic();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    player.stop();
+    super.dispose();
   }
 
   @override
@@ -33,8 +62,6 @@ class _MusicPageState extends ConsumerState<MusicPage> {
         .getProminentColor(currentYoutube.snippet.thumbnails['medium']['url']);
     Color? prominentColor = ref.watch(imageColorProvider).prominentColor;
 
-    YoutubePlayerController youtubePlayerController =
-        ref.watch(musicProvider).youtubePlayerController;
     bool playState = ref.watch(musicProvider).playState;
 
     return Scaffold(
@@ -134,7 +161,68 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                 ),
               ),
             ),
-            Expanded(flex: 2, child: MusicProgressBar()),
+            Expanded(
+              flex: 2,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Text(
+                        '플레이리스트에 추가하기',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          //현재 플리에 저장
+                          ref
+                              .read(playlistProvider)
+                              .addPlaylist([currentYoutube]);
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              YoudioSnackbar.snackBar('플레이리스트에 추가했어요!'));
+                        },
+                        icon: const FaIcon(
+                          FontAwesomeIcons.layerGroup,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      const Text(
+                        '서랍에 추가하기',
+                        style: TextStyle(
+                          color: Colors.white,
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () {
+                          String todo = 'todo';
+                          //TODO: 서랍 플리에 저장
+
+                          ScaffoldMessenger.of(context).showSnackBar(
+                              YoudioSnackbar.snackBar('선택한 서랍에 추가했어요!'));
+                        },
+                        icon: const FaIcon(
+                          FontAwesomeIcons.folderOpen,
+                          color: Colors.white,
+                          size: 32,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            MusicProgressBar(
+              stream: getCurrentDuration(),
+            ),
             Expanded(
               flex: 1,
               child: Row(
@@ -144,17 +232,24 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                     width: 50,
                     child: IconButton(
                       onPressed: () {
-                        //현재 플리에 저장
-                        ref
-                            .read(playlistProvider)
-                            .addPlaylist([currentYoutube]);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            YoudioSnackbar.snackBar('플레이리스트에 추가했어요!'));
+                        List<Youtube> searchList =
+                            ref.read(searchResultProvider).searchResult!;
+                        int thisIndex = searchList.indexOf(currentYoutube);
+                        if (thisIndex != 0) {
+                          ref
+                              .read(musicProvider)
+                              .grantMusic(searchList[thisIndex - 1]);
+                          initMusic();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            YoudioSnackbar.snackBar('이전 노래가 없어요!'),
+                          );
+                        }
                       },
                       icon: const FaIcon(
-                        FontAwesomeIcons.layerGroup,
+                        FontAwesomeIcons.backwardStep,
                         color: Colors.white,
-                        size: 32,
+                        size: 36,
                       ),
                     ),
                   ),
@@ -162,6 +257,7 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                     width: 50,
                     child: IconButton(
                       onPressed: () {
+                        playState ? player.pause() : player.play();
                         ref.read(musicProvider).changePlayState();
                       },
                       icon: FaIcon(
@@ -177,33 +273,28 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                     width: 50,
                     child: IconButton(
                       onPressed: () {
-                        String todo = 'todo';
-                        //TODO: 서랍 플리에 저장
-
-                        ScaffoldMessenger.of(context).showSnackBar(
-                            YoudioSnackbar.snackBar('선택한 서랍에 추가했어요!'));
+                        List<Youtube> searchList =
+                            ref.read(searchResultProvider).searchResult!;
+                        int thisIndex = searchList.indexOf(currentYoutube);
+                        if (thisIndex != searchList.length - 1) {
+                          ref
+                              .read(musicProvider)
+                              .grantMusic(searchList[thisIndex + 1]);
+                          initMusic();
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            YoudioSnackbar.snackBar('다음 노래가 없어요!'),
+                          );
+                        }
                       },
                       icon: const FaIcon(
-                        FontAwesomeIcons.folderOpen,
+                        FontAwesomeIcons.forwardStep,
                         color: Colors.white,
-                        size: 32,
+                        size: 36,
                       ),
                     ),
                   ),
                 ],
-              ),
-            ),
-            SizedBox(
-              width: 0,
-              height: 0,
-              child: Transform.translate(
-                offset: const Offset(0, 100),
-                child: YoutubePlayer(
-                  onEnded: (_) {
-                    ref.read(musicProvider).changePlayState();
-                  },
-                  controller: youtubePlayerController,
-                ),
               ),
             ),
           ],

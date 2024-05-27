@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:youdio/data/model/youtube/youtube.dart';
+import 'package:youdio/presentation/snackbar.dart';
 import 'package:youdio/provider/playlist_provider.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
 
 class CurrentMusicStateWidget extends ConsumerStatefulWidget {
   const CurrentMusicStateWidget({super.key});
@@ -19,8 +19,6 @@ class _CurrentMusicStateWidgetState
   Widget build(BuildContext context) {
     bool playState = ref.watch(playlistProvider).playState;
     Youtube? currentPlay = ref.watch(playlistProvider).currentPlay;
-    YoutubePlayerController? youtubePlayerController =
-        ref.watch(playlistProvider).youtubePlayerController;
 
     return Container(
       width: double.infinity,
@@ -95,22 +93,9 @@ class _CurrentMusicStateWidgetState
                     ],
                   ),
                 ),
-                //본체
-                SizedBox(
+                const SizedBox(
                   width: 10,
                   height: 0,
-                  child: Transform.translate(
-                    offset: const Offset(0, 100),
-                    child: youtubePlayerController != null
-                        ? YoutubePlayer(
-                            onEnded: (_) {
-                              ref.read(playlistProvider).changePlayState();
-                              //TODO: 다음곡 있으면 넘어가는 로직
-                            },
-                            controller: youtubePlayerController,
-                          )
-                        : null,
-                  ),
                 ),
                 //playState
                 Row(
@@ -118,7 +103,12 @@ class _CurrentMusicStateWidgetState
                   children: [
                     IconButton(
                       onPressed: () {
-                        //TODO:
+                        bool result = ref.read(playlistProvider).backwardPlay();
+                        if (!result) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            YoudioSnackbar.snackBar('이전 노래가 없어요!'),
+                          );
+                        }
                       },
                       icon: const FaIcon(
                         FontAwesomeIcons.backwardStep,
@@ -138,7 +128,12 @@ class _CurrentMusicStateWidgetState
                     ),
                     IconButton(
                       onPressed: () {
-                        //TODO:
+                        bool result = ref.read(playlistProvider).forwardPlay();
+                        if (!result) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            YoudioSnackbar.snackBar('다음 노래가 없어요!'),
+                          );
+                        }
                       },
                       icon: const FaIcon(
                         FontAwesomeIcons.forwardStep,

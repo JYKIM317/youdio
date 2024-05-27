@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:youdio/data/model/youtube/youtube.dart';
 import 'package:youdio/data/repository/playlist_repository.dart';
-import 'package:youtube_player_flutter/youtube_player_flutter.dart';
+import 'package:youtube_explode_dart/youtube_explode_dart.dart';
+import 'package:just_audio/just_audio.dart';
 
 class PlaylistViewModel extends ChangeNotifier {
   List<Youtube>? _playlist;
@@ -55,54 +58,94 @@ class PlaylistViewModel extends ChangeNotifier {
   ///
   ///
 
-  YoutubePlayerController? _youtubePlayerController;
-  YoutubePlayerController? get youtubePlayerController =>
-      _youtubePlayerController;
+  final AudioPlayer _player = AudioPlayer();
+  final YoutubeExplode _yt = YoutubeExplode();
 
-  grantMusic(Youtube youtube) {
+  grantMusic(Youtube youtube) async {
+    StreamManifest manifest =
+        await _yt.videos.streamsClient.getManifest(youtube.id);
+    StreamInfo info = manifest.audioOnly.withHighestBitrate();
+    String audioUri = info.url.toString();
+
     _playState = true;
     _currentPlay = youtube;
 
-    initController();
+    await _player.setUrl(audioUri);
+    _player.play();
 
     notifyListeners();
   }
 
   changePlayState() {
     if (_playState) {
-      _youtubePlayerController!.pause();
+      _player.pause();
       _playState = false;
     } else {
       if (currentPlay != null) {
-        //현재 플레이가 있었다면
-        _youtubePlayerController!.play();
-        _playState = true;
+        //현재 플레이가 있고, 끝까지 재생했다면
+        if (_player.position >= _player.duration!) {
+          _player.seek(Duration.zero);
+          _player.play();
+          _playState = true;
+        } else {
+          //현재 플레이가 있고, 재생중이었다면
+          _player.play();
+          _playState = true;
+        }
       } else if (playlist != null && playlist!.isNotEmpty) {
         //현재 플레이는 없지만 플레이리스트가 있을경우
         grantMusic(playlist!.first);
       }
     }
+
     notifyListeners();
   }
 
-  initController() {
-    _youtubePlayerController = null;
-    notifyListeners();
-    _youtubePlayerController = YoutubePlayerController(
-      initialVideoId: currentPlay!.id,
-      flags: const YoutubePlayerFlags(
-        autoPlay: true,
-        mute: false,
-      ),
-    );
-  }
+  Timer? throttleTimer;
 
   Stream<int> getCurrentDuration() async* {
-    int position = youtubePlayerController!.value.position.inSeconds;
-    int duration = youtubePlayerController!.value.metaData.duration.inSeconds;
+    int position = _player.position.inSeconds;
+    int duration = _player.duration?.inSeconds ?? 0;
     notifyListeners();
     int progress = (position / duration * 100).toInt();
 
+    if (position >= duration) {
+      _player.pause();
+      _playState = false;
+      if (throttleTimer == null || !throttleTimer!.isActive) {
+        throttleTimer = Timer(const Duration(seconds: 60), () {});
+        forwardPlay();
+      }
+    }
+
     yield progress;
+  }
+
+  bool forwardPlay() {
+    bool result = false;
+    //다음 곡 있으면 자동 재생
+    if (playlist != null && currentPlay != null) {
+      int currentIdx = playlist!.indexOf(currentPlay!);
+      if (currentIdx < playlist!.length - 1) {
+        grantMusic(playlist![currentIdx + 1]);
+        result = true;
+      }
+    }
+
+    return result;
+  }
+
+  bool backwardPlay() {
+    bool result = false;
+    //이전 곡 있으면 자동 재생
+    if (playlist != null && currentPlay != null) {
+      int currentIdx = playlist!.indexOf(currentPlay!);
+      if (currentIdx != 0) {
+        grantMusic(playlist![currentIdx - 1]);
+        result = true;
+      }
+    }
+
+    return result;
   }
 }
