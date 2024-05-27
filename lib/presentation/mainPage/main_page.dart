@@ -19,6 +19,7 @@ class MainPage extends ConsumerWidget {
       backgroundColor: Colors.grey[900],
       appBar: AppBar(
         backgroundColor: Colors.transparent,
+        surfaceTintColor: Colors.transparent,
         elevation: 0,
         title: Text(
           ['플레이리스트', '검색', '서랍'][currentIndex],

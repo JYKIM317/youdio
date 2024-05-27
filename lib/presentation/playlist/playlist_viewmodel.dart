@@ -30,12 +30,24 @@ class PlaylistViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  removePlaylist(List<int> indexlist) {
-    for (int idx in indexlist) {
-      _playlist!.removeAt(idx);
+  removePlaylist(int idx) {
+    _playlist!.removeAt(idx);
+    if (currentPlayIndex == idx) {
+      if (playlist!.length - 1 > idx) {
+        changeMusic(idx);
+        _player.stop();
+      } else if (playlist!.length == 1) {
+        _currentPlay = null;
+        _currentPlayIndex = null;
+        _playState = false;
+        _player.stop();
+      } else {
+        backwardPlay();
+      }
     }
-    PlaylistRepository().setMyPlaylist(_playlist!);
     notifyListeners();
+    generateConcatAudioSourceWithMyPlaylist();
+    PlaylistRepository().setMyPlaylist(_playlist!);
   }
 
   initializePlaylist() {
@@ -200,5 +212,20 @@ class PlaylistViewModel extends ChangeNotifier {
     }
 
     return result;
+  }
+}
+
+class DragViewModel extends ChangeNotifier {
+  bool _dragPermission = false;
+  bool get dragPermission => _dragPermission;
+
+  grantDrag() {
+    _dragPermission = true;
+    notifyListeners();
+  }
+
+  dismissDrag() {
+    _dragPermission = false;
+    notifyListeners();
   }
 }

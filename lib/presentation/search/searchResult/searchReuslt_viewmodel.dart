@@ -41,12 +41,11 @@ class SRMultiSelectViewModel extends ChangeNotifier {
       if (_selectedList.isEmpty) {
         _multiModeState = false;
       }
-      notifyListeners();
     } else {
       //선택 리스트에 해당 객체가 포함되어있지 않은 경우
       _selectedList.add(youtube);
-      notifyListeners();
     }
+    notifyListeners();
   }
 
   initializeList() {

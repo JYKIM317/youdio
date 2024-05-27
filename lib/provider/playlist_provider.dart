@@ -7,6 +7,10 @@ final playlistProvider = ChangeNotifierProvider<PlaylistViewModel>((ref) {
   return PlaylistViewModel();
 });
 
+final dragProvider = ChangeNotifierProvider<DragViewModel>((ref) {
+  return DragViewModel();
+});
+
 final shelvesProvider = ChangeNotifierProvider<ShelvesViewModel>((ref) {
   return ShelvesViewModel();
 });
