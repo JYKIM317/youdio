@@ -16,7 +16,7 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
   @override
   Widget build(BuildContext context) {
     List<Youtube>? playlist = ref.watch(playlistProvider).playlist;
-    Youtube? currentPlay = ref.watch(playlistProvider).currentPlay;
+    int? currentPlayIdx = ref.watch(playlistProvider).currentPlayIndex;
 
     if (playlist == null) {
       ref.read(playlistProvider).fetchData();
@@ -28,12 +28,23 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
       padding: const EdgeInsets.fromLTRB(16, 20, 16, 40),
       itemCount: playlist.length,
       itemBuilder: (BuildContext ctx, int idx) {
-        bool playing = currentPlay == playlist[idx];
+        bool playing = currentPlayIdx == idx;
 
         return GestureDetector(
           onTap: () {
-            if (currentPlay != playlist[idx]) {
-              ref.read(playlistProvider).grantMusic(playlist[idx]);
+            if (!playing) {
+              bool isFirst = currentPlayIdx == null;
+
+              if (isFirst) {
+                ref
+                    .read(playlistProvider)
+                    .grantMusic(youtube: playlist[idx], index: idx);
+                ref
+                    .read(playlistProvider)
+                    .generateConcatAudioSourceWithMyPlaylist();
+              } else {
+                ref.read(playlistProvider).changeMusic(idx);
+              }
             }
           },
           onLongPress: () {

@@ -14,7 +14,36 @@ class CurrentMusicStateWidget extends ConsumerStatefulWidget {
 }
 
 class _CurrentMusicStateWidgetState
-    extends ConsumerState<CurrentMusicStateWidget> {
+    extends ConsumerState<CurrentMusicStateWidget> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+
+    if (state == AppLifecycleState.resumed) {
+      int? currentIdx = ref.read(playlistProvider).player.currentIndex;
+      int? beforeBackgroundIdx = ref.read(playlistProvider).currentPlayIndex;
+      bool isSame = currentIdx == beforeBackgroundIdx;
+
+      if (beforeBackgroundIdx != null && currentIdx != null && !isSame) {
+        ref
+            .read(playlistProvider)
+            .changeMusicStateComebackForeground(currentIdx);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     bool playState = ref.watch(playlistProvider).playState;
