@@ -21,7 +21,6 @@ Youtube Data API를 이용해 원하는 유튜브 영상을 검색, 찾기 기�
   shared_preferences: ^2.2.3
   flutter_riverpod: ^2.5.1
   font_awesome_flutter: ^10.7.0
-  youtube_player_flutter: ^9.0.1
   cached_network_image: ^3.3.1
   palette_generator: ^0.3.3+3
   just_audio: ^0.9.38
