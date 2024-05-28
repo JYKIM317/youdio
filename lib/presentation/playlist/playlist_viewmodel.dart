@@ -103,6 +103,7 @@ class PlaylistViewModel extends ChangeNotifier {
         ),
       ),
     );
+
     await _player.setAudioSource(listsource,
         initialIndex: currentPlayIndex, initialPosition: _player.position);
   }

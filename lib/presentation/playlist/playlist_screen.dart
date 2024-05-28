@@ -67,7 +67,8 @@ class _PlaylistScreenState extends ConsumerState<PlaylistScreen> {
               return GestureDetector(
                 onTap: () {
                   if (!playing) {
-                    bool isFirst = currentPlayIdx == null;
+                    bool isFirst =
+                        ref.read(playlistProvider).player.audioSource == null;
 
                     if (isFirst) {
                       ref
