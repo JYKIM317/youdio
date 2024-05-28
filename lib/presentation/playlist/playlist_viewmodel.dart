@@ -26,8 +26,9 @@ class PlaylistViewModel extends ChangeNotifier {
   addPlaylist(List<Youtube> list) {
     _playlist ??= [];
     _playlist!.addAll(list);
-    PlaylistRepository().setMyPlaylist(_playlist!);
     notifyListeners();
+    generateConcatAudioSourceWithMyPlaylist();
+    PlaylistRepository().setMyPlaylist(_playlist!);
   }
 
   removePlaylist(int idx) {
