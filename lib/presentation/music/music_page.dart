@@ -203,11 +203,11 @@ class _MusicPageState extends ConsumerState<MusicPage> {
                       ),
                       IconButton(
                         onPressed: () {
-                          String todo = 'todo';
-                          //TODO: 서랍 플리에 저장
-
-                          ScaffoldMessenger.of(context).showSnackBar(
-                              YoudioSnackbar.snackBar('선택한 서랍에 추가했어요!'));
+                          showDialog(
+                            context: context,
+                            builder: (context) =>
+                                AddToAlbumAlert(selectYoutube: currentYoutube),
+                          );
                         },
                         icon: const FaIcon(
                           FontAwesomeIcons.folderOpen,

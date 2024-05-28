@@ -178,84 +178,75 @@ class _ShelvesAlertState extends ConsumerState<ShelvesAlert> {
   }
 }
 
-class ReplaceToPlaylistAlert extends ConsumerStatefulWidget {
+class ReplaceToPlaylistAlert extends ConsumerWidget {
   final List<Youtube> thisAlbum;
   const ReplaceToPlaylistAlert({super.key, required this.thisAlbum});
 
   @override
-  ConsumerState<ConsumerStatefulWidget> createState() =>
-      _ReplaceToPlaylistAlertState();
-}
-
-class _ReplaceToPlaylistAlertState
-    extends ConsumerState<ReplaceToPlaylistAlert> {
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
-        margin: EdgeInsets.symmetric(
-            horizontal: 30, vertical: MediaQuery.of(context).size.height / 3.5),
-        decoration: BoxDecoration(
-          color: Colors.grey[900],
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text.rich(
-              TextSpan(
-                  text: '선택하신 앨범을\n플레이리스트로 교체할까요?\n\n',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 21,
-                  ),
-                  children: [
-                    TextSpan(
-                      text: '주의하세요! 현재 플레이리스트는 초기화됩니다.',
-                      style: TextStyle(
-                        color: Colors.amber,
-                        fontSize: 18,
-                      ),
-                    )
-                  ]),
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
-              children: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context);
-                  },
-                  child: Text(
-                    '취소할게요',
-                    style: TextStyle(
-                      color: Colors.amber.withOpacity(0.6),
-                      fontSize: 18,
-                    ),
-                  ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
+      margin: EdgeInsets.symmetric(
+          horizontal: 30, vertical: MediaQuery.of(context).size.height / 3.5),
+      decoration: BoxDecoration(
+        color: Colors.grey[900],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text.rich(
+            TextSpan(
+                text: '선택하신 앨범을\n플레이리스트로 교체할까요?\n\n',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 21,
                 ),
-                TextButton(
-                  onPressed: () {
-                    ref.read(playlistProvider).initializePlaylist();
-                    ref.read(playlistProvider).addPlaylist(widget.thisAlbum);
-                    Navigator.pop(context);
-                    ref.read(indexProvider.notifier).selectIndex(0);
-                  },
-                  child: const Text(
-                    '교체할게요',
+                children: [
+                  TextSpan(
+                    text: '주의하세요! 현재 플레이리스트는 초기화됩니다.',
                     style: TextStyle(
                       color: Colors.amber,
                       fontSize: 18,
                     ),
+                  )
+                ]),
+          ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text(
+                  '취소할게요',
+                  style: TextStyle(
+                    color: Colors.amber.withOpacity(0.6),
+                    fontSize: 18,
                   ),
                 ),
-              ],
-            ),
-          ],
-        ),
+              ),
+              TextButton(
+                onPressed: () {
+                  ref.read(playlistProvider).initializePlaylist();
+                  ref.read(playlistProvider).addPlaylist(thisAlbum);
+                  Navigator.pop(context);
+                  ref.read(indexProvider.notifier).selectIndex(0);
+                  ref.read(playlistProvider).changeMusic(0);
+                },
+                child: const Text(
+                  '교체할게요',
+                  style: TextStyle(
+                    color: Colors.amber,
+                    fontSize: 18,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:youdio/data/model/youtube/youtube.dart';
 import 'package:youdio/data/repository/shelves_repository.dart';
 
 class ShelvesViewModel extends ChangeNotifier {
@@ -19,6 +20,12 @@ class ShelvesViewModel extends ChangeNotifier {
 
   removeAlbumList(int index) {
     _albumList!.removeAt(index);
+    notifyListeners();
+    ShelvesRepository().setMyShelves(_albumList!);
+  }
+
+  addYoutubeInAlbum({required Youtube youtube, required int index}) {
+    _albumList![index]['album'].add(youtube);
     notifyListeners();
     ShelvesRepository().setMyShelves(_albumList!);
   }
