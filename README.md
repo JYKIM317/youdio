@@ -15,25 +15,15 @@ Youtube Data API를 이용해 원하는 유튜브 영상을 검색, 찾기 기�
 ### 사용 라이브러리
 
 - freezed_annotation: ^2.4.1
-  
 - json_annotation: ^4.9.0
-  
 - go_router: ^14.1.2
-  
 - dio: ^5.4.3+1
-  
 - shared_preferences: ^2.2.3
-  
 - flutter_riverpod: ^2.5.1
-  
 - font_awesome_flutter: ^10.7.0
-  
 - cached_network_image: ^3.3.1
-  
 - palette_generator: ^0.3.3+3
-  
 - just_audio: ^0.9.38
-  
 - youtube_explode_dart: ^2.2.1
 
 ## 미리보기 이미지
